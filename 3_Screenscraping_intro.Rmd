@@ -1,0 +1,135 @@
+---
+title: "methods@manchester: Screenscraping intro"
+author: "Renata Topinkova"
+date: "14 06 2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load libraries
+```{r}
+library(rvest)
+library(dplyr)
+```
+
+
+## Import intro.html file
+`read_html()` scrapes the HTML file into R (this can be also done with `GET` function from the `httr` package)
+
+Returns an html_document containing the content of:
+- `<head>` tag (page metadata, mostly invisible to the user), and 
+- `<body>`tag (the content of the page that is visible to the user)
+
+```{r}
+# read html into R
+intro <- read_html("intro.html", encoding = "UTF-8") # you can omit the encoding argument since the page is in English
+
+intro
+```
+
+
+
+### Selecting elements
+Goal: Get the text: "Scrape me!"
+
+There is usually more than one way to scrape the content we are interested in. 
+Figuring out the right way to scrape everything we want to scrape & nothing else, is the hardest part of screenscraping and requires a lot of experimenting. Don't be discouraged if you don't succeed on the first try! 
+
+
+**In your browser:**
+1. Open the `intro.html` page in your browser.
+2. Right click on the page, select `Inspect` (may be called differently in your browser, e.g., `display source code`) or use CTRL+I shortcut
+  - This should display the HTML structure of the webpage
+3. Explore the structure of the file. 
+4. Find the element(s) you want to scrape. Is there something unique about them? E.g., tag, class or an id?
+  - You can use Inspector Gadget plugin for you browser to help you identify what is unique for the element(s)
+
+
+**In R:**
+5. Read the page into R with `read_html()`
+6. Try extracting the element with `html_elements()`
+7. Extract the text (`html_text()`) or attribute (`html_attr()`) you are interested in.
+
+
+#### Selecting based on html tags only
+```{r}
+# Selecting based on html tags only
+
+### Selects tag that we are interested in BUT also a tag we are NOT interested in --> we have to be more selective
+html_elements(intro, "p")
+
+### Same result: Both of the <p> tags are nested inside a <div> tag
+html_elements(intro, "div p") 
+```
+--> Not good enough
+
+
+#### Adding the CSS selectors
+In general, selecting elements based on the html tags alone will not be sufficient --> we have to put our css knowledge to use.
+```{r}
+
+## All of these are possible
+
+### select <p> tag that is nested inside a <div> with a class =  "one"
+html_elements(intro, "div.one p") 
+
+### select <p> tag that is nested within any tag that has a class = "one"
+html_elements(intro, css = ".one p") 
+
+### select <p> tag that has a class = "to-scrape"
+html_elements(intro, css = "p.to-scrape") 
+
+### select anything that has a class = "to-scrape" 
+#### Only the text of interest has this class --> shortest way to select it
+html_elements(intro, css = ".to-scrape")
+```
+tl;dr: Many ways lead to Rome.
+
+
+
+
+
+### Getting the text inside the tag
+```{r}
+# find the element
+p_tag <- html_elements(intro, css = ".to-scrape")
+
+# get the text between the tags
+html_text(p_tag)
+
+## Alternatively: We can pipe the two functions together
+html_elements(intro, css = ".to-scrape") %>%
+  html_text()
+
+## Or, use a base R notation
+html_text(html_elements(intro, ".to-scrape"))
+```
+
+
+**Note:** `html_attr()` is used in a similar way. 
+Most often, `html_attr()`is used to get url from `<a>` tags, which is located inside `href` attribute of `<a>`:
+1. Find the `<a>`tag you are interested in with `html_elements()`
+2. Pipe it into `html_attr("href")`
+
+
+
+
+## Additional material - XPATH
+"XPath stands for XML Path Language. It uses a non-XML syntax to provide a flexible way of addressing (pointing to) different parts of an XML document." https://developer.mozilla.org/en-US/docs/Web/XPath
+
+You can think about it as way to guide R though the HTML tree of the page. 
+
+```{r}
+## Go to html tag, find <body> in it, inside it, find the first <div>, inside this <div> find <p> tags
+html_elements(intro, xpath = "/html/body/div[1]/p")
+
+# We can simplify part of the structure with // which tells R to look ANYWHERE inside the document
+# anywhere in the document, find a div which has a class "one", then find <p> tag inside this div
+html_elements(intro, xpath = "//div[contains(@class, 'one')]/p")
+
+# Same result as above but we are specifying the class of the <p>
+html_elements(intro, xpath = "//p[contains(@class, 'to-scrape')]")
+```

@@ -1,0 +1,147 @@
+---
+title: "methods@manchester: API intro"
+author: "Renata Topinkova"
+date: "14 06 2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Load libraries
+```{r libs}
+#install.packages("package_name")
+
+library(httr)
+library(dplyr)
+``` 
+
+
+## Query API
+API: https://api.nationalize.io
+Parameters are organized as key - value pairs. See the allowed parameters in the API documentation.
+
+We can query the API with `GET` function from `httr`package. 
+`GET` function requires the endpoint of the API, and the query (key = value pairs) which has to be inside a `list`. 
+
+Alternatively, you can simply write your query as a string. This is fine for short queries but may create problems when your queries become more complex (i.e., when you use more parameters). 
+
+```{r endpoints}
+# Specify the endpoint
+endpoint <- "https://api.nationalize.io?"
+
+
+
+# Query the API
+req <- GET(endpoint, 
+           # specify the parameters
+           query = list(
+             name = "Renata"))
+
+# Alternatively, you can get the same results with: GET("https://api.nationalize.io?name=renata")
+
+# Explore what we've collected
+req
+
+```
+--> Status 200 - ok, query successful
+
+
+### Parsing the content of our query
+To parse the content of the API query, we need the `content` function from the `httr` package.
+`content` function has `as` argument that specifies how the content will be parsed (`raw`, `text`, `parsed`). 
+If you do not specify the argument, R will make its best guess to parse the data. Sometimes it's accurate, sometimes not - you can play around with it.
+
+Alternatively, you can parse json content with `jsonlite` package.
+
+```{r}
+# See the content of the query
+content(req)
+
+# Play around with the parsing
+content(req, "text") # js notation
+content(req, "raw") # not human-readable
+content(req, "parsed") # best version - list
+
+```
+
+## Your turn!
+
+### 1.1. Query: Your name.
+Query the Nationalize.io API (https://api.nationalize.io) to predict the nationality of your name. 
+```{r}
+petra <- GET(endpoint, 
+             query = list(
+              name = "Petra"))
+
+petra
+
+content(petra)
+```
+
+
+### 1.2. Query Genderize.io I: Name
+Look up the documentation for a new API https://genderize.io/
+Query the API to predict the gender for the name "Jessie".
+```{r}
+endpoint_gndr <- "https://api.genderize.io?"
+jessie <- GET(endpoint_gndr,
+              query = list(
+                name = "Jessie"
+              ))
+content(jessie)
+```
+
+
+### 1.3. Query Genderize.io II: Name & Country
+Query the API https://genderize.io/ to predict the gender for the name "Jessie" in the US and the UK. Is there any difference? 
+You will have to submit two queries.
+Hint: Look up the country codes in `our data`. 
+```{r}
+# Get the predictions for the US
+jessie_us <- GET(endpoint_gndr,
+  query = list(
+    name = "Jessie",
+    country_id = "US"
+  )
+)
+content(jessie_us)
+
+
+# Get the predictions for the UK
+jessie_gb <- GET(endpoint_gndr,
+  query = list(
+    name = "Jessie",
+    country_id = "GB"
+  )
+)
+
+content(jessie_gb)
+
+```
+
+
+
+## Additional material: Data wrangling
+
+### Wrapping the output into a dataframe (example we have done together)
+```{r}
+# use the parsed API response
+content(req, "parsed") %>%
+  # convert it to tibble
+  as_tibble() %>%
+  # unnest the country column
+  tidyr::unnest_wider(country)
+```
+
+
+### Wrapping the output into a dataframe (ex. 1.3)
+```{r}
+list(content(jessie_us), content(jessie_gb)) %>%
+  # convert to data frame
+  purrr::map_df(as.data.frame)
+  
+```
+

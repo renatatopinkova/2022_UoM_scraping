@@ -1,0 +1,69 @@
+---
+title: "methods@manchester: Screenscraping - Quotes to scrape: Solutions"
+author: "Renata Topinkova"
+date: "14 06 2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Load libraries
+```{r}
+library(rvest)
+library(dplyr)
+```
+
+
+## Read the webpage into R
+In this exercise, we are working with https://quotes.toscrape.com
+```{r}
+page <- read_html("https://quotes.toscrape.com")
+page
+```
+
+
+## Your turn!
+
+### 1. Extract the texts of quotes
+```{r}
+quotes <- html_elements(page, ".text") %>%
+  html_text()
+
+quotes
+```
+
+
+### 2. Extract the authors of the quotes
+Note: The number of authors should correspond to the number of quotes
+```{r}
+authors <- html_elements(page, ".author") %>%
+  html_text()
+
+authors
+```
+
+
+### 3. Bind the quotes and their authors into a dataframe
+Note: Think about functions you know from base R, dplyr, or other packages you use.
+```{r}
+df <- tibble(text = quotes, author = authors)
+```
+
+### 4. Bonus: Extract links to authors' pages
+Note: You will need `html_attr()` to do it. 
+```{r}
+urls <- html_elements(page, ".quote span a") %>%
+  html_attr("href")
+
+urls
+
+
+# Bonus to a bonus -> change relative paths to absolute paths
+urls <- paste0("https://quotes.toscrape.com", urls)
+
+```
+
+

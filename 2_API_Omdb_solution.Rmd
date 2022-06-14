@@ -1,0 +1,105 @@
+---
+title: "methods@manchester: API intro: Omdb API solutions"
+author: "Renata Topinkova"
+date: "15 06 2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load libraries
+```{r libs}
+library(httr)
+library(dplyr)
+``` 
+
+
+
+
+## Endpoint & apikey
+Get to the Omdb API website: https://www.omdbapi.com/
+- Apply for a free API token: https://www.omdbapi.com/apikey.aspx
+  - Select Account type: Free
+- Once you receive your API key via email, enter it into the endpoint in place of #### in the code
+
+**Note:** As a best practice, you should not be hardcoding your API tokens into your code. Instead, it is better to make use of R environments. 
+More on this: https://bookdown.org/paul/apis_for_social_scientists/best-practices.html
+
+```{r endpoints}
+## Replace #### with the token you have received via email
+endpoint <- "http://www.omdbapi.com/?apikey=####"
+
+```
+
+
+
+
+## Your turn!
+
+### 1. Find out which movie has id "tt0425112"
+```{r}
+mystery_movie <- GET(endpoint, 
+                     query = list(i = "tt0425112"))
+
+# status ok
+mystery_movie
+
+# content
+content(mystery_movie)
+
+```
+
+
+
+### 2. Get the full plot of the mystery movie that from ex. 1 
+```{r}
+plt_movie <- GET(endpoint,
+                 query = list(
+                  i = "tt0425112",
+                  plot = "full" ))
+
+# response
+plt_movie
+
+# parse content
+plt_movie_full <- content(plt_movie)
+
+# show plot
+plt_movie_full$Plot
+```
+
+### 3. Find movies that have "dog" in their title. 
+Note: There should be more than one. 
+```{r}
+dog <- GET(endpoint, 
+           query = list(s = "dog"))
+
+df_dog <- content(dog)
+
+bind_rows(df_dog$Search)
+```
+
+### BONUS 1: Get more "dog" movies. 
+Hint: Look into the documentation. Which parameter you could use to get additional results? 
+```{r}
+# omdb returns 10 results per page --> page = 2 gives different results than page = 1 (default)
+dog_p2 <- GET(endpoint, 
+              query = list(
+                s = "dog", 
+                page = 2))
+dog_p2
+content(dog_p2)
+
+df_dog2 <- content(dog_p2)
+## This is useful for automatization of the data collection - we can iterate over the page numbers (i)
+```
+
+
+### BONUS 2: Bind the results from exercise 3 (and optionally, also Bonus 1) into a dataframe (tibble)
+There are many solutions from different packages (base, dplyr, tidyr, purrr), don't be afraid to experiment!
+```{r}
+bind_rows(df_dog$Search, df_dog2$Search)
+```
+
