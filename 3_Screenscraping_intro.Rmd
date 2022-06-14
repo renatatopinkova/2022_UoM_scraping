@@ -45,7 +45,8 @@ Figuring out the right way to scrape everything we want to scrape & nothing else
   - This should display the HTML structure of the webpage
 3. Explore the structure of the file. 
 4. Find the element(s) you want to scrape. Is there something unique about them? E.g., tag, class or an id?
-  - You can use Inspector Gadget plugin for you browser to help you identify what is unique for the element(s)
+  - You can use SelectorGadget plugin for you browser to help you identify what is unique for the element(s)
+  https://chrome.google.com/webstore/detail/selectorgadget/mhjhnkcfbdhnjickkkdbjoemdmbfginb
 
 
 **In R:**
