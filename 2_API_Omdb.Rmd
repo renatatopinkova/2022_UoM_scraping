@@ -29,7 +29,7 @@ More on this: https://bookdown.org/paul/apis_for_social_scientists/best-practice
 
 ```{r endpoints}
 ## Replace #### with the token you have received via email
-endpoint <- "http://www.omdbapi.com/?apikey=bdeff223"
+endpoint <- "http://www.omdbapi.com/?apikey=####"
 
 ```
 
